@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Water Drop Adventure 💧</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka+One&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:#e8f4fd;min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:12px}
+#game{width:100%;max-width:600px;margin:0 auto}
+.screen{display:none;animation:fadeIn .45s ease}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.scene{width:100%;height:260px;border-radius:20px 20px 0 0;position:relative;overflow:hidden}
+.card{background:#fff;border-radius:0 0 20px 20px;padding:18px 20px 20px;box-shadow:0 4px 24px rgba(0,0,0,.1)}
+.card-standalone{border-radius:20px;padding:22px;box-shadow:0 4px 24px rgba(0,0,0,.1);background:#fff;margin-bottom:12px}
+h1{font-family:'Fredoka One',cursive;font-size:28px;color:#1565c0;margin-bottom:6px}
+h2{font-family:'Fredoka One',cursive;font-size:22px;color:#1565c0;margin-bottom:8px}
+p{font-size:15px;color:#444;line-height:1.65}
+.btn{padding:11px 22px;border-radius:50px;border:none;cursor:pointer;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;transition:all .18s}
+.btn:hover{transform:scale(1.05)}.btn:active{transform:scale(.97)}
+.btn-blue{background:#2196f3;color:#fff;box-shadow:0 3px 10px rgba(33,150,243,.4)}
+.btn-green{background:#43a047;color:#fff;box-shadow:0 3px 10px rgba(67,160,71,.4)}
+.btn-orange{background:#fb8c00;color:#fff;box-shadow:0 3px 10px rgba(251,140,0,.4)}
+.btn-full{width:100%;display:block;text-align:center;margin-top:10px}
+.phase-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:700;margin-bottom:8px}
+.phase-liquid{background:#bbdefb;color:#0d47a1}
+.phase-gas{background:#e8eaf6;color:#283593}
+.phase-solid{background:#e0f2f1;color:#004d40}
+.dialog-box{background:#f0f7ff;border-radius:14px;padding:12px 15px;margin:8px 0;border-left:4px solid #2196f3}
+.dialog-speaker{font-size:12px;font-weight:800;color:#1565c0;margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px}
+.fact-box{background:#e8f5e9;border-radius:12px;padding:10px 14px;margin-top:10px;font-size:13px;color:#1b5e20;border-left:4px solid #43a047}
+.villain-box{background:#fff3e0;border-radius:14px;padding:12px 15px;margin:8px 0;border-left:4px solid #ff6f00}
+label.field-label{font-size:14px;font-weight:700;color:#333;display:block;margin:12px 0 5px}
+input[type=text]{width:100%;padding:10px 14px;border:2px solid #e0e0e0;border-radius:12px;font-size:16px;font-family:'Nunito',sans-serif;background:#fafafa;transition:border .2s}
+input[type=text]:focus{outline:none;border-color:#2196f3;background:#fff}
+.acc-grid{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 8px}
+.acc-btn{padding:7px 12px;border:2.5px solid #e0e0e0;border-radius:12px;cursor:pointer;font-size:13px;background:#fff;transition:all .15s;font-family:'Nunito',sans-serif;font-weight:700}
+.acc-btn.sel{border-color:#2196f3;background:#e3f2fd}
+.acc-btn:hover{border-color:#90caf9;transform:scale(1.06)}
+.color-swatch{width:36px;height:36px;border-radius:50%;border:3px solid #e0e0e0;cursor:pointer;transition:all .15s}
+.color-swatch.sel{border-color:#1565c0;box-shadow:0 0 0 3px rgba(21,101,192,.25);transform:scale(1.15)}
+.prog-row{display:flex;justify-content:center;gap:7px;margin:10px 0 4px}
+.prog-dot{width:11px;height:11px;border-radius:50%;background:#ddd;transition:all .3s}
+.prog-dot.done{background:#43a047}
+.prog-dot.active{background:#2196f3;box-shadow:0 0 0 3px rgba(33,150,243,.25)}
+.trash-item{position:absolute;font-size:26px;cursor:pointer;transition:transform .18s;user-select:none;z-index:6;filter:drop-shadow(1px 2px 3px rgba(0,0,0,.35))}
+.trash-item:hover{transform:scale(1.4) rotate(12deg) !important}
+.trash-item.gone{animation:pop .25s forwards;pointer-events:none}
+@keyframes pop{to{transform:scale(0) rotate(35deg);opacity:0}}
+.q-option{width:100%;padding:13px 18px;border-radius:14px;border:2.5px solid #e0e0e0;background:#fff;cursor:pointer;font-size:15px;text-align:left;margin:6px 0;font-family:'Nunito',sans-serif;font-weight:600;transition:all .15s;color:#333}
+.q-option:hover{border-color:#2196f3;background:#e3f2fd}
+.q-option.correct{background:#e8f5e9;border-color:#43a047;color:#1b5e20}
+.q-option.wrong{background:#ffebee;border-color:#e53935;color:#b71c1c}
+.q-feedback{margin-top:10px;padding:10px 14px;border-radius:12px;font-size:14px;font-weight:600;display:none}
+.q-feedback.good{background:#e8f5e9;color:#1b5e20}
+.q-feedback.bad{background:#ffebee;color:#b71c1c}
+.star-row{display:flex;justify-content:center;gap:8px;margin:12px 0}
+.win-star{font-size:42px;animation:starPop .4s ease backwards}
+@keyframes starPop{from{transform:scale(0) rotate(-20deg);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes floatUD{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@keyframes floatUDX{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-9px)}}
+@keyframes puff{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+@keyframes shimmer{0%,100%{opacity:.5}50%{opacity:1}}
+@keyframes bobWave{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-5px) rotate(3deg)}}
+.float{animation:floatUD 2.2s ease-in-out infinite}
+.float-cx{animation:floatUDX 2.2s ease-in-out infinite}
+.shimmer{animation:shimmer 2s ease-in-out infinite}
+.sound-btn{position:fixed;bottom:14px;right:14px;background:#fff;border:2px solid #90caf9;border-radius:50%;width:44px;height:44px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.15);z-index:100;transition:all .2s}
+.sound-btn:hover{transform:scale(1.12)}
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:14px}
+.chapter-num{font-size:12px;color:#999;font-weight:600}
+/* TTS reading indicator */
+.reading-bar{height:3px;background:linear-gradient(90deg,#2196f3,#4fc3f7);border-radius:2px;width:0%;transition:width linear;margin-top:6px}
+.reading-bar.active{background:linear-gradient(90deg,#2196f3,#4fc3f7)}
+/* skip-narration hint */
+.skip-hint{font-size:11px;color:#aaa;text-align:center;margin-top:4px;display:none}
+.skip-hint.visible{display:block}
+</style>
+</head>
+<body>
+<div id="game">
+<button class="sound-btn" id="sound-btn" onclick="toggleSound()">🔊</button>
+
+<!-- ══ WELCOME ══ -->
+<div class="screen active" id="s-welcome">
+  <div class="card-standalone" style="text-align:center;padding:36px 22px">
+    <svg width="90" height="105" viewBox="0 0 90 105" style="margin-bottom:8px">
+      <path d="M45 8 Q18 42 15 67 Q15 100 45 100 Q75 100 75 67 Q72 42 45 8Z" fill="#4fc3f7"/>
+      <ellipse cx="35" cy="60" rx="5" ry="8" fill="white" opacity=".45" transform="rotate(-18,35,60)"/>
+      <circle cx="37" cy="60" r="5" fill="#1565c0" opacity=".9"/>
+      <circle cx="54" cy="60" r="5" fill="#1565c0" opacity=".9"/>
+      <circle cx="39" cy="58" r="2" fill="white" opacity=".7"/>
+      <circle cx="56" cy="58" r="2" fill="white" opacity=".7"/>
+      <path d="M37 72 Q45 80 53 72" stroke="#1565c0" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </svg>
+    <h1 style="font-size:32px;margin-bottom:6px">The Water Drop Adventure!</h1>
+    <p style="font-size:16px;max-width:380px;margin:0 auto 20px">Join a tiny water drop on an epic journey through the whole water cycle — ocean, clouds, mountains, rivers, and back again! 🌊☁️🏔️</p>
+    <p style="font-size:13px;color:#888;margin-bottom:20px">Ages 6–10 · Science + Story + Mini-Games + Quiz</p>
+    <button class="btn btn-blue" onclick="gotoScreen('s-create');playFx('click')" style="font-size:18px;padding:14px 36px">Start Adventure! 🚀</button>
+  </div>
+</div>
+
+<!-- ══ CHARACTER CREATOR ══ -->
+<div class="screen" id="s-create">
+  <div class="card-standalone">
+    <h2>✨ Create Your Water Drop!</h2>
+    <p style="margin-bottom:4px">Every adventure needs a hero. Let's name and dress yours!</p>
+    <label class="field-label">💧 Name your drop:</label>
+    <input type="text" id="inp-name" placeholder="e.g. Droppy, Splash, Wavie..." maxlength="16">
+    <label class="field-label">👓 Pick glasses / accessories:</label>
+    <div class="acc-grid">
+      <button class="acc-btn sel" data-t="acc" data-v="none">🚫 None</button>
+      <button class="acc-btn" data-t="acc" data-v="glasses">👓 Glasses</button>
+      <button class="acc-btn" data-t="acc" data-v="shades">🕶️ Sunglasses</button>
+      <button class="acc-btn" data-t="acc" data-v="heart">💖 Heart Glasses</button>
+      <button class="acc-btn" data-t="acc" data-v="star">⭐ Star Clip</button>
+      <button class="acc-btn" data-t="acc" data-v="bow">🎀 Bow</button>
+      <button class="acc-btn" data-t="acc" data-v="flower">🌸 Flower</button>
+    </div>
+    <label class="field-label">🎨 Pick a body color:</label>
+    <div class="acc-grid">
+      <div class="color-swatch sel" data-t="color" data-v="#4fc3f7" style="background:#4fc3f7"></div>
+      <div class="color-swatch" data-t="color" data-v="#26c6da" style="background:#26c6da"></div>
+      <div class="color-swatch" data-t="color" data-v="#66bb6a" style="background:#66bb6a"></div>
+      <div class="color-swatch" data-t="color" data-v="#ffa726" style="background:#ffa726"></div>
+      <div class="color-swatch" data-t="color" data-v="#ab47bc" style="background:#ab47bc"></div>
+      <div class="color-swatch" data-t="color" data-v="#ef5350" style="background:#ef5350"></div>
+      <div class="color-swatch" data-t="color" data-v="#ec407a" style="background:#ec407a"></div>
+    </div>
+    <div style="text-align:center;padding:16px;background:#f0f7ff;border-radius:16px;margin:14px 0">
+      <svg id="drop-preview" width="90" height="110" viewBox="0 0 90 110"></svg>
+      <div id="drop-preview-name" style="font-family:'Fredoka One',cursive;font-size:20px;color:#1565c0;margin-top:4px">Your Drop</div>
+    </div>
+    <button class="btn btn-green btn-full" onclick="startGame()" style="font-size:16px;padding:12px">Let's Go! 🌊</button>
+  </div>
+</div>
+
+<!-- ══ OCEAN ══ -->
+<div class="screen" id="s-ocean">
+  <div class="scene" style="background:linear-gradient(180deg,#87ceeb 0%,#87ceeb 50%,#1e90ff 50%)">
+    <div style="position:absolute;top:10px;right:26px;font-size:52px" class="float">☀️</div>
+    <svg style="position:absolute;bottom:0;left:0;width:100%;height:135px" viewBox="0 0 600 135" preserveAspectRatio="none">
+      <path d="M0 50 Q75 22 150 50 Q225 78 300 50 Q375 22 450 50 Q525 78 600 50 L600 135 L0 135Z" fill="#1e90ff" opacity=".95"/>
+      <path d="M0 76 Q90 50 180 76 Q270 102 360 76 Q450 50 540 76 Q580 92 600 76 L600 135 L0 135Z" fill="#1565c0" opacity=".7"/>
+    </svg>
+    <div style="position:absolute;bottom:88px;left:50%" class="float-cx">
+      <svg id="char-ocean" width="68" height="80" viewBox="0 0 90 110"></svg>
+    </div>
+    <svg class="shimmer" style="position:absolute;bottom:118px;left:43%;width:72px;height:52px" viewBox="0 0 72 52">
+      <path d="M12 48 Q6 30 12 8" stroke="rgba(255,255,255,.6)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-dasharray="5 4"/>
+      <path d="M34 48 Q28 28 34 6" stroke="rgba(255,255,255,.6)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-dasharray="5 4"/>
+      <path d="M56 48 Q63 30 56 8" stroke="rgba(255,255,255,.6)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-dasharray="5 4"/>
+    </svg>
+    <div style="position:absolute;top:12px;left:14px;font-size:24px">🐠</div>
+    <div style="position:absolute;top:34px;left:38px;font-size:20px">🦈</div>
+    <div style="position:absolute;top:18px;left:100px;font-size:22px">⛵</div>
+  </div>
+  <div class="card">
+    <div class="prog-row" id="prog-ocean"></div>
+    <span class="phase-badge phase-liquid">💧 Liquid Phase</span>
+    <h2 id="ocean-h">Chapter 1: The Big Ocean</h2>
+    <div class="dialog-box">
+      <div class="dialog-speaker" id="ocean-spk">Your Drop says:</div>
+      <p id="ocean-txt">"I'm floating in the great big ocean!"</p>
+    </div>
+    <div class="fact-box" id="ocean-fact"></div>
+    <div class="reading-bar" id="rb-ocean"></div>
+    <div class="skip-hint" id="sh-ocean">Tap anywhere to skip narration</div>
+  </div>
+</div>
+
+<!-- ══ OCEAN POLLUTION ══ -->
+<div class="screen" id="s-ocean-poll">
+  <div class="scene" id="ocean-poll-scene" style="background:linear-gradient(180deg,#6ba8c0 0%,#6ba8c0 42%,#1e6a9a 42%)">
+    <svg id="ocean-poll-waves" style="position:absolute;top:0;left:0;width:100%;height:100%" viewBox="0 0 600 260" preserveAspectRatio="none">
+      <path d="M0 109 Q75 95 150 109 Q225 123 300 109 Q375 95 450 109 Q525 123 600 109 L600 260 L0 260Z" fill="#1e6a9a" opacity=".95"/>
+      <path d="M0 125 Q90 110 180 125 Q270 140 360 125 Q450 110 540 125 Q580 132 600 125 L600 260 L0 260Z" fill="#155a8a" opacity=".7"/>
+    </svg>
+    <svg id="creatures-svg" style="position:absolute;top:0;left:0;width:100%;height:100%" viewBox="0 0 600 260">
+      <g id="cr-turtle1"><text x="60" y="200" font-size="28" text-anchor="middle">🐢</text>
+        <circle cx="75" cy="162" r="16" fill="white" opacity=".92" stroke="#cce" stroke-width="1.5"/>
+        <circle cx="67" cy="178" r="5" fill="white" opacity=".85" stroke="#cce" stroke-width="1"/>
+        <circle cx="62" cy="186" r="3" fill="white" opacity=".75" stroke="#cce" stroke-width="1"/>
+        <text id="tb1" x="75" y="168" font-size="16" text-anchor="middle">😢</text></g>
+      <g id="cr-fish1"><text x="175" y="215" font-size="24" text-anchor="middle">🐟</text>
+        <circle cx="190" cy="177" r="15" fill="white" opacity=".92" stroke="#cce" stroke-width="1.5"/>
+        <circle cx="182" cy="192" r="4.5" fill="white" opacity=".85" stroke="#cce" stroke-width="1"/>
+        <circle cx="177" cy="199" r="3" fill="white" opacity=".75" stroke="#cce" stroke-width="1"/>
+        <text id="tb2" x="190" y="183" font-size="15" text-anchor="middle">😢</text></g>
+      <g id="cr-turtle2"><text x="295" y="235" font-size="26" text-anchor="middle">🐢</text>
+        <circle cx="310" cy="196" r="16" fill="white" opacity=".92" stroke="#cce" stroke-width="1.5"/>
+        <circle cx="302" cy="212" r="5" fill="white" opacity=".85" stroke="#cce" stroke-width="1"/>
+        <circle cx="297" cy="220" r="3" fill="white" opacity=".75" stroke="#cce" stroke-width="1"/>
+        <text id="tb3" x="310" y="202" font-size="16" text-anchor="middle">😢</text></g>
+      <g id="cr-fish2"><text x="415" y="210" font-size="24" text-anchor="middle">🐡</text>
+        <circle cx="430" cy="172" r="15" fill="white" opacity=".92" stroke="#cce" stroke-width="1.5"/>
+        <circle cx="422" cy="187" r="4.5" fill="white" opacity=".85" stroke="#cce" stroke-width="1"/>
+        <circle cx="417" cy="194" r="3" fill="white" opacity=".75" stroke="#cce" stroke-width="1"/>
+        <text id="tb4" x="430" y="178" font-size="15" text-anchor="middle">😢</text></g>
+      <g id="cr-turtle3"><text x="530" y="225" font-size="27" text-anchor="middle">🐢</text>
+        <circle cx="545" cy="186" r="16" fill="white" opacity=".92" stroke="#cce" stroke-width="1.5"/>
+        <circle cx="537" cy="202" r="5" fill="white" opacity=".85" stroke="#cce" stroke-width="1"/>
+        <circle cx="532" cy="210" r="3" fill="white" opacity=".75" stroke="#cce" stroke-width="1"/>
+        <text id="tb5" x="545" y="192" font-size="16" text-anchor="middle">😢</text></g>
+      <g id="cr-fish3"><text x="470" y="248" font-size="22" text-anchor="middle">🐠</text>
+        <circle cx="484" cy="210" r="14" fill="white" opacity=".92" stroke="#cce" stroke-width="1.5"/>
+        <circle cx="477" cy="224" r="4" fill="white" opacity=".85" stroke="#cce" stroke-width="1"/>
+        <circle cx="472" cy="231" r="2.5" fill="white" opacity=".75" stroke="#cce" stroke-width="1"/>
+        <text id="tb6" x="484" y="216" font-size="14" text-anchor="middle">😢</text></g>
+    </svg>
+    <div id="ocean-trash-zone" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:8"></div>
+    <div style="position:absolute;top:7px;left:50%;transform:translateX(-50%);background:rgba(200,40,40,.9);color:white;padding:4px 16px;border-radius:20px;font-size:13px;font-weight:700;white-space:nowrap;z-index:12">😈 Polluto returns! Tap ocean trash!</div>
+  </div>
+  <div class="card">
+    <h2 style="color:#c62828">😈 Polluto Strikes the OCEAN!</h2>
+    <div class="villain-box">
+      <div class="dialog-speaker" style="color:#e65100">😈 Polluto says:</div>
+      <p id="op-villain-txt">"HEE HEE! I've trashed the OCEAN! Look at those sad turtles and fish! The sea is ruined FOREVER! Mwahahaha!"</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin:10px 0">
+      <span style="font-size:14px;font-weight:700;color:#555">Ocean cleaned:</span>
+      <span style="font-size:22px;font-weight:800;color:#2196f3" id="ocean-trash-count">0</span>
+      <span style="font-size:14px;color:#888">/ 8</span>
+      <span id="ocean-trash-msg" style="font-size:13px;color:#43a047;font-weight:700;margin-left:8px"></span>
+    </div>
+    <p style="font-size:13px;color:#666">🖱️ Click each piece of trash on the ocean surface to save the sea creatures!</p>
+    <button class="btn btn-green btn-full" id="btn-ocean-poll-next" style="display:none;margin-top:8px" onclick="gotoScreen('s-cloud')">Ocean saved! 🎉 Up to the clouds! →</button>
+  </div>
+</div>
+
+<!-- ══ CLOUD ══ -->
+<div class="screen" id="s-cloud">
+  <div class="scene" style="background:linear-gradient(180deg,#b8d4ff 0%,#dceeff 62%,#a8d57a 62%)">
+    <div style="position:absolute;top:14px;left:18px;font-size:58px" class="float">☁️</div>
+    <div style="position:absolute;top:26px;right:28px;font-size:42px;opacity:.8">⛅</div>
+    <div style="position:absolute;top:58px;left:52%;font-size:28px;opacity:.6">☁️</div>
+    <div style="position:absolute;bottom:28px;left:18%;font-size:20px">🌿</div>
+    <div style="position:absolute;bottom:24px;left:54%;font-size:22px">🌲</div>
+    <div style="position:absolute;bottom:22px;right:6%;font-size:18px">🌳</div>
+    <div style="position:absolute;top:28px;left:50%;transform:translateX(-50%)">
+      <svg id="char-cloud" width="82" height="92" viewBox="0 0 90 100" style="animation:puff 2.5s ease-in-out infinite"></svg>
+    </div>
+  </div>
+  <div class="card">
+    <div class="prog-row" id="prog-cloud"></div>
+    <span class="phase-badge phase-gas">💨 Gas Phase — Water Vapor!</span>
+    <h2>Chapter 3: Up Into the Clouds!</h2>
+    <div class="dialog-box">
+      <div class="dialog-speaker" id="cloud-spk">Your Drop says:</div>
+      <p id="cloud-txt">"The sun heated me up so much that I turned into water vapor — an invisible gas! I floated high where cold air made me condense back into a tiny droplet. We joined millions of others to make a cloud!"</p>
+    </div>
+    <div class="fact-box" id="cloud-fact"></div>
+    <div class="reading-bar" id="rb-cloud"></div>
+    <div class="skip-hint" id="sh-cloud">Tap anywhere to skip narration</div>
+  </div>
+</div>
+
+<!-- ══ MOUNTAIN ══ -->
+<div class="screen" id="s-mountain">
+  <div class="scene" id="mt-scene" style="background:linear-gradient(180deg,#6ec6f5 0%,#6ec6f5 55%,#4a7c59 55%)">
+    <svg id="mt-base" style="position:absolute;bottom:0;left:0;width:100%;height:175px" viewBox="0 0 600 175" preserveAspectRatio="none">
+      <polygon points="300,5 530,175 70,175" fill="#6b8a68"/>
+      <polygon points="470,62 600,175 340,175" fill="#5a7a57"/>
+      <rect x="0" y="148" width="600" height="27" fill="#4a6741"/>
+      <path id="river-path" d="M0 162 Q150 155 300 160 Q450 165 600 158 L600 175 L0 175Z" fill="#3d85b8" opacity="0"/>
+    </svg>
+    <svg id="mt-snow" style="position:absolute;bottom:0;left:0;width:100%;height:175px;pointer-events:none" viewBox="0 0 600 175" preserveAspectRatio="none">
+      <polygon id="snow-cap"   points="300,5 336,52 264,52"          fill="white" opacity="0"/>
+      <polygon id="snow-upper" points="280,30 360,70 240,70"         fill="white" opacity="0"/>
+      <polygon id="snow-mid-l" points="190,90 300,62 170,120"        fill="white" opacity="0"/>
+      <polygon id="snow-mid-r" points="400,62 470,85 340,110"        fill="white" opacity="0"/>
+      <polygon id="snow-lower" points="130,130 470,130 510,155 90,155" fill="white" opacity="0"/>
+    </svg>
+    <svg id="mt-melt" style="position:absolute;bottom:0;left:0;width:100%;height:175px;pointer-events:none" viewBox="0 0 600 175" preserveAspectRatio="none">
+      <path id="melt-stream" d="M300 60 Q280 90 260 115 Q240 135 200 148 Q150 158 0 162 L0 168 Q150 163 200 153 Q245 142 268 120 Q288 96 308 65Z" fill="#64b5f6" opacity="0"/>
+    </svg>
+    <div style="position:absolute;top:12px;left:8%;font-size:52px;transition:left 2s ease" id="cloud-mt">☁️</div>
+    <div style="position:absolute" id="mt-char-wrap">
+      <svg id="char-mt" width="52" height="60" viewBox="0 0 90 110"></svg>
+    </div>
+    <div style="position:absolute;bottom:18px;left:18%;display:none" id="river-drop-wrap">
+      <svg id="char-river-drop" width="38" height="44" viewBox="0 0 90 110" class="float"></svg>
+    </div>
+  </div>
+  <div class="card">
+    <div class="prog-row" id="prog-mountain"></div>
+    <span class="phase-badge phase-solid" id="mt-phase-badge">❄️ Solid Phase — Freezing!</span>
+    <h2 id="mt-h">Chapter 4: Over the Mountains!</h2>
+    <div class="dialog-box">
+      <div class="dialog-speaker" id="mt-spk">Your Drop says:</div>
+      <p id="mt-txt">"Wind blew our cloud up over the mountain peaks!"</p>
+    </div>
+    <div class="fact-box" id="mt-fact"></div>
+    <div class="reading-bar" id="rb-mt"></div>
+  </div>
+</div>
+
+<!-- ══ RIVER POLLUTION ══ -->
+<div class="screen" id="s-pollution">
+  <div class="scene" style="background:linear-gradient(180deg,#c8dab0 0%,#c8dab0 50%,#4d90c0 50%)">
+    <svg style="position:absolute;bottom:0;left:0;width:100%;height:125px" viewBox="0 0 600 125" preserveAspectRatio="none">
+      <rect x="0" y="0" width="600" height="125" fill="#3d85b8"/>
+      <path d="M0 42 Q100 18 200 42 Q300 66 400 42 Q500 18 600 42 L600 125 L0 125Z" fill="#2d6a9f" opacity=".7"/>
+    </svg>
+    <div style="position:absolute;top:7px;left:50%;transform:translateX(-50%);background:rgba(200,40,40,.9);color:white;padding:4px 16px;border-radius:20px;font-size:13px;font-weight:700;white-space:nowrap;z-index:10">😈 Polluto! Tap river trash to clean it!</div>
+    <div id="river-trash-zone" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:6"></div>
+  </div>
+  <div class="card">
+    <h2 style="color:#c62828">⚠️ Polluto in the River!</h2>
+    <div class="villain-box">
+      <div class="dialog-speaker" style="color:#e65100">😈 Polluto:</div>
+      <p>"HA HA! I filled this river with trash! This water will NEVER be clean! Give up, little drop!"</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin:10px 0">
+      <span style="font-size:14px;font-weight:700;color:#555">Cleaned:</span>
+      <span style="font-size:22px;font-weight:800;color:#2196f3" id="river-trash-count">0</span>
+      <span style="font-size:14px;color:#888">/ 8</span>
+      <span id="river-trash-msg" style="font-size:13px;color:#43a047;font-weight:700;margin-left:8px"></span>
+    </div>
+    <p style="font-size:13px;color:#666">🖱️ Click each piece of trash to clean the river!</p>
+    <button class="btn btn-green btn-full" id="btn-river-next" style="display:none;margin-top:8px" onclick="gotoScreen('s-plant');playFx('cheer')">River clean! 🎉 On to the treatment plant →</button>
+  </div>
+</div>
+
+<!-- ══ TREATMENT PLANT ══ -->
+<div class="screen" id="s-plant">
+  <div class="scene" style="background:linear-gradient(180deg,#bde0ee 0%,#bde0ee 50%,#c8aa80 50%)">
+    <svg style="position:absolute;bottom:0;left:0;width:100%;height:200px" viewBox="0 0 600 200" preserveAspectRatio="none">
+      <rect x="0" y="80" width="600" height="120" fill="#c8aa80"/>
+      <rect x="30" y="55" width="78" height="98" rx="10" fill="#90a4ae"/>
+      <rect x="42" y="67" width="54" height="74" rx="6" fill="#b0bec5"/>
+      <rect x="148" y="66" width="68" height="90" rx="10" fill="#78909c"/>
+      <rect x="160" y="78" width="44" height="66" rx="5" fill="#9db2bc"/>
+      <rect x="258" y="56" width="80" height="100" rx="10" fill="#546e7a"/>
+      <rect x="270" y="68" width="56" height="76" rx="5" fill="#6c8f9b"/>
+      <rect x="378" y="63" width="70" height="90" rx="10" fill="#78909c"/>
+      <rect x="488" y="68" width="68" height="85" rx="10" fill="#607d8b"/>
+      <rect x="108" y="108" width="40" height="10" fill="#546e7a"/>
+      <rect x="216" y="106" width="42" height="10" fill="#546e7a"/>
+      <rect x="338" y="108" width="40" height="10" fill="#546e7a"/>
+      <rect x="448" y="110" width="40" height="10" fill="#546e7a"/>
+      <text x="69"  y="50" text-anchor="middle" font-size="11" fill="#333" font-family="sans-serif">Screening</text>
+      <text x="182" y="61" text-anchor="middle" font-size="11" fill="#333" font-family="sans-serif">Settling</text>
+      <text x="298" y="51" text-anchor="middle" font-size="11" fill="#333" font-family="sans-serif">Filtration</text>
+      <text x="413" y="58" text-anchor="middle" font-size="11" fill="#333" font-family="sans-serif">Chlorine</text>
+      <text x="522" y="63" text-anchor="middle" font-size="11" fill="#333" font-family="sans-serif">Clean! ✨</text>
+      <path d="M528 153 Q558 168 600 168" stroke="#546e7a" stroke-width="8" fill="none"/>
+    </svg>
+    <div style="position:absolute;top:12px;left:47%">
+      <svg id="char-plant" width="60" height="70" viewBox="0 0 90 110" class="float"></svg>
+    </div>
+    <div style="position:absolute;top:10px;left:10px;font-size:24px">🏭</div>
+  </div>
+  <div class="card">
+    <div class="prog-row" id="prog-plant"></div>
+    <span class="phase-badge phase-liquid">💧 Liquid Phase</span>
+    <h2>Chapter 6: The Treatment Plant!</h2>
+    <div class="dialog-box">
+      <div class="dialog-speaker" id="plant-spk">Your Drop says:</div>
+      <p id="plant-txt">"After the pollution fight I flowed into the water treatment plant! Engineers filter out dirt, remove bacteria with chlorine, and test that the water is perfectly safe. It's a super-powered cleaning factory!"</p>
+    </div>
+    <div class="fact-box" id="plant-fact"></div>
+    <div class="reading-bar" id="rb-plant"></div>
+    <div class="skip-hint" id="sh-plant">Tap anywhere to skip narration</div>
+  </div>
+</div>
+
+<!-- ══ BACK TO OCEAN ══ -->
+<div class="screen" id="s-ocean2">
+  <div class="scene" style="background:linear-gradient(180deg,#87ceeb 0%,#87ceeb 50%,#1e90ff 50%)">
+    <div style="position:absolute;top:10px;right:26px;font-size:52px" class="float">☀️</div>
+    <svg style="position:absolute;bottom:0;left:0;width:100%;height:135px" viewBox="0 0 600 135" preserveAspectRatio="none">
+      <path d="M0 50 Q75 22 150 50 Q225 78 300 50 Q375 22 450 50 Q525 78 600 50 L600 135 L0 135Z" fill="#1e90ff" opacity=".95"/>
+      <path d="M0 76 Q90 50 180 76 Q270 102 360 76 Q450 50 540 76 Q580 92 600 76 L600 135 L0 135Z" fill="#1565c0" opacity=".7"/>
+    </svg>
+    <div style="position:absolute;bottom:90px;left:50%" class="float-cx">
+      <svg id="char-ocean2" width="68" height="80" viewBox="0 0 90 110"></svg>
+    </div>
+    <div style="position:absolute;top:8px;left:12px;font-size:26px">🎊</div>
+    <div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:26px">🎉</div>
+    <div style="position:absolute;top:8px;right:70px;font-size:26px">🎊</div>
+    <div style="position:absolute;bottom:98px;left:15%;font-size:22px">🐋</div>
+    <div style="position:absolute;bottom:90px;right:14%;font-size:20px">🐬</div>
+  </div>
+  <div class="card">
+    <h2>🏆 Back Home! The Cycle is Complete!</h2>
+    <div class="dialog-box">
+      <div class="dialog-speaker" id="ocean2-spk">Your Drop says:</div>
+      <p id="ocean2-txt">"I DID IT! Ocean, evaporation, vapor, cloud, mountain, snow, melt, river, fight Polluto, treatment plant, OCEAN! I've completed the ENTIRE water cycle! And I'll do it all again!"</p>
+    </div>
+    <div class="fact-box" id="ocean2-fact"></div>
+    <div class="reading-bar" id="rb-ocean2"></div>
+    <div class="skip-hint" id="sh-ocean2">Tap anywhere to skip narration</div>
+  </div>
+</div>
+
+<!-- ══ TRIVIA ══ -->
+<div class="screen" id="s-trivia">
+  <div class="card-standalone">
+    <div style="text-align:center;margin-bottom:14px">
+      <svg id="trivia-drop" width="64" height="74" viewBox="0 0 90 110" style="margin-bottom:4px"></svg>
+      <h2>Water Cycle Quiz! 🌊</h2>
+      <p style="font-size:13px;color:#888">Question <span id="q-num">1</span> of 6 &nbsp;·&nbsp; Score: <span id="q-score" style="color:#2196f3;font-weight:800">0</span></p>
+      <div style="display:flex;gap:6px;justify-content:center;margin-top:8px" id="q-prog"></div>
+    </div>
+    <div class="dialog-box" style="margin-bottom:10px">
+      <div class="dialog-speaker">❓ Question <span id="q-num2">1</span>:</div>
+      <p id="q-text" style="font-size:16px;font-weight:700;color:#1a1a1a"></p>
+    </div>
+    <div id="q-opts"></div>
+    <div class="q-feedback" id="q-feedback"></div>
+  </div>
+</div>
+
+<!-- ══ WIN ══ -->
+<div class="screen" id="s-win">
+  <div class="card-standalone" style="text-align:center;padding:32px 22px">
+    <svg id="win-drop" width="90" height="105" viewBox="0 0 90 110" style="margin-bottom:6px"></svg>
+    <h1 style="font-size:30px;margin-bottom:4px">🎉 Amazing Job!</h1>
+    <p style="font-size:20px;font-weight:700;color:#1565c0;margin-bottom:4px" id="win-name"></p>
+    <div class="star-row" id="win-stars"></div>
+    <p style="font-size:17px;margin:4px 0 14px;color:#444" id="win-msg"></p>
+    <div class="fact-box" style="text-align:left;margin-bottom:20px">
+      💧 You've completed the <strong>Water Drop Adventure</strong>! You know how water evaporates, condenses, precipitates, melts, gets treated, and flows back to the ocean — the cycle that keeps our whole planet alive!
+    </div>
+    <button class="btn btn-blue" onclick="restart()" style="font-size:16px;padding:13px 30px">Play Again! 🔄</button>
+  </div>
+</div>
+
+</div><!-- #game -->
+<script>
+// ══════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════
+var st={name:"Droppy",acc:"none",color:"#4fc3f7",riverDone:0,oceanDone:0,score:0,qIdx:0,answered:false};
+var oceanStep=0, soundOn=true, audioCtx=null, rainNode=null, rainGain=null;
+var mtAnimDone=false;
+var ttsUtterance=null, ttsTimer=null;
+
+// ══════════════════════════════════════════════════
+//  FACT & TRIVIA POOLS
+// ══════════════════════════════════════════════════
+var factPools={
+  ocean:["The ocean holds about <strong>97%</strong> of all water on Earth — that's why most water is salty!",
+    "The Pacific Ocean is bigger than all the land on Earth <strong>combined</strong>!",
+    "Seawater is salty because rivers carry dissolved minerals into the ocean over millions of years.",
+    "The deepest part of the ocean — the Mariana Trench — is deeper than Mount Everest is tall!",
+    "Oceans produce over <strong>50%</strong> of Earth's oxygen, mostly from tiny plants called phytoplankton."],
+  cloud:["A single cloud can hold over <strong>500,000 kg</strong> of water — heavier than a jumbo jet!",
+    "Clouds float because the water droplets inside them are so tiny they fall extremely slowly.",
+    "There are 10 main types of clouds — from fluffy cumulus to flat stratus to towering cumulonimbus.",
+    "The water that makes a cloud was liquid ocean water just <strong>hours or days</strong> ago!",
+    "A thunderstorm cloud can grow <strong>20 km tall</strong> — taller than most airplanes fly."],
+  mountain:["Mountains are called <strong>'water towers of the world'</strong> — snowpack melts slowly and feeds rivers all spring.",
+    "The Himalayas provide drinking water for over <strong>1 billion people</strong>.",
+    "Higher elevations get snow because air pressure drops with altitude, making temperatures fall.",
+    "In Colorado alone, mountain snowpack provides up to <strong>80%</strong> of the state's water supply!",
+    "Glaciers are like slow-moving rivers of ice — they flow downhill just <strong>a few centimetres a day</strong>."],
+  plant:["Water treatment plants use sand filters fine enough to remove particles smaller than a grain of pollen.",
+    "Chlorine has been used to disinfect drinking water since <strong>1908</strong> — it's saved millions of lives!",
+    "Before water treatment, diseases like cholera and typhoid killed millions of people in cities.",
+    "Modern plants can clean water to be <strong>99.9999%</strong> free of harmful bacteria.",
+    "The ancient Romans built incredible aqueducts to bring fresh water to cities over <strong>2,000 years ago</strong>."],
+  ocean2:["The water you drink today might have once been inside a <strong>dinosaur</strong> — Earth's water is recycled forever!",
+    "A single water molecule completes the full water cycle in about <strong>9 days</strong> on average.",
+    "Deep ocean water can take over <strong>1,000 years</strong> to circulate back to the surface.",
+    "There is the same amount of water on Earth today as when the dinosaurs roamed — it just keeps cycling!",
+    "Humans are made of about <strong>60% water</strong> — we're basically walking water cycles ourselves!"]
+};
+function pickFact(pool){ var a=factPools[pool]; return a[Math.floor(Math.random()*a.length)]; }
+
+var allTrivia=[
+  {q:"What is it called when liquid water turns into water vapor and floats up into the sky?",opts:["Condensation","Precipitation","Evaporation","Runoff"],ans:2,exp:"Evaporation! The sun's heat breaks water molecules free from liquid so they float away as invisible gas."},
+  {q:"What do we call it when water vapor cools and turns back into tiny cloud droplets?",opts:["Evaporation","Condensation","Precipitation","Transpiration"],ans:1,exp:"Condensation! When warm water vapor hits cold air high up, it condenses into tiny droplets — that's how clouds form!"},
+  {q:"Rain, snow, sleet, and hail all share one scientific name. What is it?",opts:["Evaporation","Condensation","Transpiration","Precipitation"],ans:3,exp:"Precipitation! Any water that falls from clouds to the ground is called precipitation."},
+  {q:"Why are mountains called 'water towers of the world'?",opts:["They are shaped like towers","Snowpack melts slowly and feeds rivers for months","They make clouds","They attract lightning"],ans:1,exp:"Snowpack stores water all winter and melts slowly through spring — keeping rivers flowing for months!"},
+  {q:"What does a water treatment plant do?",opts:["Makes it rain","Creates new water","Removes dirt and germs so water is safe to drink","Pumps water into clouds"],ans:2,exp:"Treatment plants filter dirt, settle particles, and disinfect with chlorine so your tap water is safe!"},
+  {q:"About how much of all Earth's water is in the ocean?",opts:["About 10%","About 50%","About 75%","About 97%"],ans:3,exp:"The oceans hold about 97% of Earth's water! Only about 3% is freshwater."},
+  {q:"What phase of matter is water inside a cloud?",opts:["Solid ice","Gas (water vapor)","Liquid tiny droplets","Plasma"],ans:2,exp:"Clouds are made of tiny liquid water droplets, or ice crystals in very cold clouds!"},
+  {q:"What is RUNOFF?",opts:["Water that evaporates from leaves","Rain or snowmelt that flows over land into rivers","Water that soaks underground","Clouds moving across the sky"],ans:1,exp:"Runoff is water flowing over land surfaces into rivers and streams after rain or snowmelt!"},
+  {q:"Which of these is water in its SOLID form?",opts:["Ocean water","Rain","Snow and ice","Water vapor"],ans:2,exp:"Snow and ice are water in solid form! Water freezes solid at 0 degrees Celsius."},
+  {q:"What energy source powers the water cycle?",opts:["The moon's gravity","Wind from storms","The sun's heat","Earth's magnetic field"],ans:2,exp:"The sun provides the heat energy that drives evaporation and keeps the whole water cycle going!"},
+  {q:"What happens to water molecules when they evaporate?",opts:["They disappear forever","They turn into solid ice","They gain energy and escape as gas","They get heavier and sink"],ans:2,exp:"Water molecules absorb heat energy, move faster and faster, then escape as invisible water vapor gas!"},
+  {q:"How long has Earth's water been cycling around?",opts:["About 100 years","About 10,000 years","About 1 million years","About 4 billion years"],ans:3,exp:"Earth's water has been cycling for about 4 billion years — the same water dinosaurs drank!"},
+  {q:"What is the scientific word for water soaking into the ground?",opts:["Precipitation","Infiltration","Condensation","Transpiration"],ans:1,exp:"Infiltration is when water soaks into soil and rock — it can become groundwater that feeds wells and springs!"},
+  {q:"Plants release water vapor through tiny holes in their leaves. What is this called?",opts:["Evaporation","Condensation","Transpiration","Precipitation"],ans:2,exp:"Transpiration! Plants suck up water through roots and release vapor through leaf pores called stomata."}
+];
+var triviaRound=[];
+function pickTrivia(){ triviaRound=allTrivia.slice().sort(function(){return Math.random()-.5;}).slice(0,6); }
+
+// ══════════════════════════════════════════════════
+//  6-ARM DENDRITE SNOWFLAKE  (exact geometry, cx=45 cy=55 R=32)
+// ══════════════════════════════════════════════════
+function dendriteSVG(color){
+  var c=color||"#4fc3f7";
+  // Main arms + branches generated from Python output, COLOR replaced
+  var lines=[
+    // arm 0 (0°)
+    '<line x1="45.0" y1="55.0" x2="77.00" y2="55.00" stroke="C" stroke-width="3.5" stroke-linecap="round"/>',
+    '<line x1="57.80" y1="55.00" x2="62.80" y2="63.66" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    '<line x1="57.80" y1="55.00" x2="62.80" y2="46.34" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    '<line x1="66.76" y1="55.00" x2="70.26" y2="61.06" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    '<line x1="66.76" y1="55.00" x2="70.26" y2="48.94" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    // arm 1 (60°)
+    '<line x1="45.0" y1="55.0" x2="61.00" y2="82.71" stroke="C" stroke-width="3.5" stroke-linecap="round"/>',
+    '<line x1="51.40" y1="66.09" x2="46.40" y2="74.75" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    '<line x1="51.40" y1="66.09" x2="61.40" y2="66.09" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    '<line x1="55.88" y1="73.84" x2="52.38" y2="79.91" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    '<line x1="55.88" y1="73.84" x2="62.88" y2="73.84" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    // arm 2 (120°)
+    '<line x1="45.0" y1="55.0" x2="29.00" y2="82.71" stroke="C" stroke-width="3.5" stroke-linecap="round"/>',
+    '<line x1="38.60" y1="66.09" x2="28.60" y2="66.09" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    '<line x1="38.60" y1="66.09" x2="43.60" y2="74.75" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    '<line x1="34.12" y1="73.84" x2="27.12" y2="73.84" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    '<line x1="34.12" y1="73.84" x2="37.62" y2="79.91" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    // arm 3 (180°)
+    '<line x1="45.0" y1="55.0" x2="13.00" y2="55.00" stroke="C" stroke-width="3.5" stroke-linecap="round"/>',
+    '<line x1="32.20" y1="55.00" x2="27.20" y2="46.34" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    '<line x1="32.20" y1="55.00" x2="27.20" y2="63.66" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    '<line x1="23.24" y1="55.00" x2="19.74" y2="48.94" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    '<line x1="23.24" y1="55.00" x2="19.74" y2="61.06" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    // arm 4 (240°)
+    '<line x1="45.0" y1="55.0" x2="29.00" y2="27.29" stroke="C" stroke-width="3.5" stroke-linecap="round"/>',
+    '<line x1="38.60" y1="43.91" x2="43.60" y2="35.25" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    '<line x1="38.60" y1="43.91" x2="28.60" y2="43.91" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    '<line x1="34.12" y1="36.16" x2="37.62" y2="30.09" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    '<line x1="34.12" y1="36.16" x2="27.12" y2="36.16" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    // arm 5 (300°)
+    '<line x1="45.0" y1="55.0" x2="61.00" y2="27.29" stroke="C" stroke-width="3.5" stroke-linecap="round"/>',
+    '<line x1="51.40" y1="43.91" x2="61.40" y2="43.91" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    '<line x1="51.40" y1="43.91" x2="46.40" y2="35.25" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    '<line x1="55.88" y1="36.16" x2="62.88" y2="36.16" stroke="C" stroke-width="2.2" stroke-linecap="round"/>',
+    '<line x1="55.88" y1="36.16" x2="52.38" y2="30.09" stroke="C" stroke-width="2.2" stroke-linecap="round"/>'
+  ];
+  return lines.join("").replace(/C"/g, c+'"');
+}
+
+// ══════════════════════════════════════════════════
+//  SVG CHARACTER (drop, vapor, snow)
+// ══════════════════════════════════════════════════
+function drawChar(svgEl,phase,color,acc){
+  if(!svgEl) return;
+  var c=color||"#4fc3f7", dk=darken(c,.3), s="";
+  if(phase==="vapor"){
+    s+='<ellipse cx="45" cy="62" rx="30" ry="22" fill="'+c+'" opacity=".42"/>';
+    s+='<ellipse cx="28" cy="54" rx="20" ry="18" fill="'+c+'" opacity=".5"/>';
+    s+='<ellipse cx="62" cy="54" rx="20" ry="18" fill="'+c+'" opacity=".5"/>';
+    s+='<ellipse cx="45" cy="44" rx="27" ry="23" fill="'+c+'" opacity=".62"/>';
+    s+='<circle cx="33" cy="56" r="3" fill="white" opacity=".5"/>';
+    s+='<circle cx="56" cy="50" r="2" fill="white" opacity=".4"/>';
+    s+='<circle cx="38" cy="43" r="3" fill="'+dk+'" opacity=".5"/>';
+    s+='<circle cx="52" cy="43" r="3" fill="'+dk+'" opacity=".5"/>';
+    s+='<path d="M38 51 Q45 56 52 51" stroke="'+dk+'" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".5"/>';
+    s+=accSVG(acc,45,43,true);
+  } else if(phase==="snow"){
+    // Glow circle behind dendrite
+    s+='<circle cx="45" cy="55" r="36" fill="'+c+'" opacity=".08"/>';
+    s+=dendriteSVG(c);
+    // Face on centre dot
+    s+='<circle cx="45" cy="55" r="8" fill="'+c+'"/>';
+    s+='<circle cx="45" cy="55" r="5" fill="white" opacity=".75"/>';
+    s+='<circle cx="42.5" cy="53.5" r="1.8" fill="'+dk+'"/>';
+    s+='<circle cx="47.5" cy="53.5" r="1.8" fill="'+dk+'"/>';
+    s+='<path d="M42 57 Q45 60 48 57" stroke="'+dk+'" stroke-width="1.4" fill="none" stroke-linecap="round"/>';
+    s+=accSVG(acc,45,53,false);
+  } else {
+    s+='<path d="M45 8 Q18 42 15 68 Q15 100 45 100 Q75 100 75 68 Q72 42 45 8Z" fill="'+c+'"/>';
+    s+='<ellipse cx="34" cy="61" rx="5" ry="8" fill="white" opacity=".42" transform="rotate(-18,34,61)"/>';
+    s+='<circle cx="32" cy="73" r="3" fill="white" opacity=".25"/>';
+    s+='<circle cx="37" cy="61" r="5" fill="'+dk+'" opacity=".9"/>';
+    s+='<circle cx="54" cy="61" r="5" fill="'+dk+'" opacity=".9"/>';
+    s+='<circle cx="39" cy="59" r="2" fill="white" opacity=".7"/>';
+    s+='<circle cx="56" cy="59" r="2" fill="white" opacity=".7"/>';
+    s+='<path d="M37 73 Q45 81 53 73" stroke="'+dk+'" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+    s+=accSVG(acc,45,59,false);
+  }
+  svgEl.innerHTML=s;
+}
+
+function darken(hex,a){
+  var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  r=Math.max(0,Math.round(r*(1-a))); g=Math.max(0,Math.round(g*(1-a))); b=Math.max(0,Math.round(b*(1-a)));
+  return "#"+r.toString(16).padStart(2,"0")+g.toString(16).padStart(2,"0")+b.toString(16).padStart(2,"0");
+}
+
+function accSVG(acc,cx,fy,isVapor){
+  var y=fy;
+  if(acc==="glasses"){
+    return '<circle cx="'+(cx-9)+'" cy="'+y+'" r="7" fill="none" stroke="#555" stroke-width="2"/>'+
+           '<circle cx="'+(cx+9)+'" cy="'+y+'" r="7" fill="none" stroke="#555" stroke-width="2"/>'+
+           '<line x1="'+(cx-2)+'" y1="'+y+'" x2="'+(cx+2)+'" y2="'+y+'" stroke="#555" stroke-width="1.5"/>'+
+           '<line x1="'+(cx-16)+'" y1="'+y+'" x2="'+(cx-20)+'" y2="'+(y+4)+'" stroke="#555" stroke-width="1.5"/>'+
+           '<line x1="'+(cx+16)+'" y1="'+y+'" x2="'+(cx+20)+'" y2="'+(y+4)+'" stroke="#555" stroke-width="1.5"/>';
+  } else if(acc==="shades"){
+    return '<rect x="'+(cx-20)+'" y="'+(y-5)+'" width="16" height="11" rx="4" fill="#1a1a2e" opacity=".9"/>'+
+           '<rect x="'+(cx+4)+'" y="'+(y-5)+'" width="16" height="11" rx="4" fill="#1a1a2e" opacity=".9"/>'+
+           '<line x1="'+(cx-4)+'" y1="'+y+'" x2="'+(cx+4)+'" y2="'+y+'" stroke="#444" stroke-width="1.5"/>'+
+           '<line x1="'+(cx-20)+'" y1="'+y+'" x2="'+(cx-24)+'" y2="'+(y+3)+'" stroke="#888" stroke-width="1.5"/>'+
+           '<line x1="'+(cx+20)+'" y1="'+y+'" x2="'+(cx+24)+'" y2="'+(y+3)+'" stroke="#888" stroke-width="1.5"/>';
+  } else if(acc==="heart"){
+    return '<text x="'+(cx-11)+'" y="'+(y+5)+'" font-size="13" fill="#e91e63">♥</text>'+
+           '<text x="'+(cx+1)+'" y="'+(y+5)+'" font-size="13" fill="#e91e63">♥</text>';
+  } else if(acc==="star"){
+    return '<text x="'+(cx+10)+'" y="'+(y-10)+'" font-size="15" fill="#ffd600">★</text>';
+  } else if(acc==="bow"){
+    return '<text x="'+(cx+6)+'" y="'+(y-18)+'" font-size="18">🎀</text>';
+  } else if(acc==="flower"){
+    return '<text x="'+(cx+7)+'" y="'+(y-18)+'" font-size="17">🌸</text>';
+  }
+  return "";
+}
+
+// ══════════════════════════════════════════════════
+//  SYNC
+// ══════════════════════════════════════════════════
+function syncAll(){
+  ["char-ocean","char-ocean2","char-plant","char-river-drop","win-drop","trivia-drop"].forEach(function(id){
+    drawChar(document.getElementById(id),"liquid",st.color,st.acc);
+  });
+  drawChar(document.getElementById("char-cloud"),"vapor",st.color,st.acc);
+  drawChar(document.getElementById("char-mt"),"snow",st.color,st.acc);
+  drawChar(document.getElementById("drop-preview"),"liquid",st.color,st.acc);
+  var n=document.getElementById("drop-preview-name"); if(n) n.textContent=st.name||"Your Drop";
+  var lbl=(st.name||"Your Drop")+" says:";
+  ["ocean-spk","cloud-spk","mt-spk","plant-spk","ocean2-spk"].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.textContent=lbl;
+  });
+  var fMap={"ocean-fact":"ocean","cloud-fact":"cloud","mt-fact":"mountain","plant-fact":"plant","ocean2-fact":"ocean2"};
+  Object.keys(fMap).forEach(function(elId){
+    var el=document.getElementById(elId);
+    if(el&&el.dataset.factSet!=="1"){ el.innerHTML="🔬 <strong>Science fact:</strong> "+pickFact(fMap[elId]); el.dataset.factSet="1"; }
+  });
+}
+
+function buildProg(id,total,cur){
+  var el=document.getElementById(id); if(!el) return;
+  el.innerHTML=Array.from({length:total},function(_,i){
+    return '<div class="prog-dot '+(i<cur?"done":i===cur?"active":"")+'" ></div>';
+  }).join("");
+}
+
+// ══════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════
+function gotoScreen(id){
+  cancelTTS();
+  document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active")});
+  var sc=document.getElementById(id); if(sc) sc.classList.add("active");
+  syncAll();
+  var pm={"s-ocean":0,"s-ocean-poll":1,"s-cloud":2,"s-mountain":3,"s-pollution":4,"s-plant":5,"s-ocean2":6};
+  ["prog-ocean","prog-cloud","prog-mountain","prog-plant"].forEach(function(pid){ buildProg(pid,8,pm[id]||0); });
+  if(id==="s-pollution") setupRiverTrash();
+  if(id==="s-ocean-poll") setupOceanTrash();
+  if(id==="s-mountain"){ mtAnimDone=false; runMountainAnim(); }
+  updateRainIntensity(id);
+  // auto-narrate story screens
+  var narrationMap={
+    "s-ocean": function(){ narrateScreen("ocean"); },
+    "s-cloud": function(){ narrateScreen("cloud"); },
+    "s-plant": function(){ narrateScreen("plant"); },
+    "s-ocean2": function(){ narrateScreen("ocean2"); }
+  };
+  if(narrationMap[id]) setTimeout(narrationMap[id],600);
+}
+
+// ══════════════════════════════════════════════════
+//  TTS NARRATION  — reads dialog text + fact, then auto-advances
+// ══════════════════════════════════════════════════
+function stripHTML(html){ return html.replace(/<[^>]*>/g,""); }
+
+function cancelTTS(){
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  if(ttsTimer){ clearTimeout(ttsTimer); ttsTimer=null; }
+  // reset all reading bars
+  document.querySelectorAll(".reading-bar").forEach(function(el){ el.style.width="0%"; el.style.transition="none"; });
+}
+
+function narrateScreen(key){
+  if(!soundOn) return;
+  if(!window.speechSynthesis) return;
+
+  // Gather text to read
+  var txtEl=document.getElementById(key+"-txt")||document.getElementById(key==="+cloud"?"cloud-txt":null);
+  // map keys to element ids
+  var txtIds={"ocean":"ocean-txt","cloud":"cloud-txt","plant":"plant-txt","ocean2":"ocean2-txt"};
+  var factIds={"ocean":"ocean-fact","cloud":"cloud-fact","plant":"plant-fact","ocean2":"ocean2-fact"};
+  var rbIds={"ocean":"rb-ocean","cloud":"rb-cloud","plant":"rb-plant","ocean2":"rb-ocean2"};
+  var shIds={"ocean":"sh-ocean","cloud":"sh-cloud","plant":"sh-plant","ocean2":"sh-ocean2"};
+  var nextMap={"ocean":null,"cloud":"s-mountain","plant":"s-ocean2","ocean2":"s-trivia"};
+  // ocean is multi-step; handled specially
+  var dialogEl=document.getElementById(txtIds[key]);
+  var factEl=document.getElementById(factIds[key]);
+  var rbEl=document.getElementById(rbIds[key]);
+  var shEl=document.getElementById(shIds[key]);
+  if(!dialogEl) return;
+
+  var dialogText=dialogEl.textContent.replace(/^["""]/,"").replace(/["""]/g,"");
+  var factText=factEl ? "Science fact. "+stripHTML(factEl.innerHTML.replace(/🔬/g,"")).replace("Science fact:","") : "";
+  var fullText=dialogText+" "+factText;
+
+  window.speechSynthesis.cancel();
+  var utt=new SpeechSynthesisUtterance(fullText);
+  utt.rate=0.92; utt.pitch=1.1; utt.volume=0.9;
+  // Pick a friendly voice if available
+  var voices=window.speechSynthesis.getVoices();
+  var preferred=voices.find(function(v){ return /samantha|karen|moira|victoria|junior|grandma/i.test(v.name); })
+               || voices.find(function(v){ return v.lang==="en-US"&&v.localService; })
+               || voices.find(function(v){ return /en/i.test(v.lang); });
+  if(preferred) utt.voice=preferred;
+
+  // Animate reading bar
+  if(rbEl){
+    rbEl.style.transition="none"; rbEl.style.width="0%";
+    setTimeout(function(){
+      var estDuration=(fullText.length/14)*1000; // rough estimate: ~14 chars/sec
+      rbEl.style.transition="width "+estDuration+"ms linear";
+      rbEl.style.width="100%";
+    },80);
+  }
+  if(shEl) shEl.classList.add("visible");
+
+  ttsUtterance=utt;
+  utt.onend=function(){
+    if(rbEl){ rbEl.style.transition="none"; rbEl.style.width="0%"; }
+    if(shEl) shEl.classList.remove("visible");
+    var next=nextMap[key];
+    if(next){ ttsTimer=setTimeout(function(){ gotoScreen(next); },700); }
+    // ocean: first step narrates, then oceanNext called
+    if(key==="ocean"){ ttsTimer=setTimeout(oceanNext,700); }
+  };
+  // Allow tap anywhere to skip
+  document.addEventListener("click",skipNarration,{once:true,capture:true});
+  window.speechSynthesis.speak(utt);
+}
+
+function skipNarration(e){
+  // Don't skip if clicking a button
+  if(e.target.tagName==="BUTTON"||e.target.tagName==="INPUT") return;
+  cancelTTS();
+}
+
+// voices may load async
+if(window.speechSynthesis){
+  window.speechSynthesis.onvoiceschanged=function(){ /* voices now available */ };
+}
+
+// ══════════════════════════════════════════════════
+//  PICKERS
+// ══════════════════════════════════════════════════
+document.querySelectorAll(".acc-btn,.color-swatch").forEach(function(btn){
+  btn.addEventListener("click",function(){
+    var t=this.dataset.t,v=this.dataset.v;
+    document.querySelectorAll('[data-t="'+t+'"]').forEach(function(b){b.classList.remove("sel")});
+    this.classList.add("sel");
+    if(t==="acc") st.acc=v; else if(t==="color") st.color=v;
+    playFx("click"); syncAll();
+  });
+});
+
+// ══════════════════════════════════════════════════
+//  START GAME
+// ══════════════════════════════════════════════════
+function startGame(){
+  var n=document.getElementById("inp-name").value.trim();
+  st.name=n||"Droppy";
+  document.querySelectorAll(".fact-box").forEach(function(el){ el.dataset.factSet=""; });
+  initAudio(); syncAll();
+  document.getElementById("ocean-txt").textContent=
+    '"Hi! I\'m '+st.name+'! I\'m floating in the great big ocean with millions of other water molecules. The sun feels so warm on me..."';
+  gotoScreen("s-ocean"); playFx("splash");
+}
+
+// ══════════════════════════════════════════════════
+//  OCEAN STEPS (auto-advance via TTS onend chain)
+// ══════════════════════════════════════════════════
+function oceanNext(){
+  oceanStep++;
+  if(oceanStep===1){
+    document.getElementById("ocean-txt").textContent=
+      '"Wow, I\'m heating up fast! The sun\'s energy makes me vibrate faster and FASTER. I feel so light — I\'m about to evaporate and turn into invisible water vapor!"';
+    document.getElementById("ocean-h").textContent="Chapter 1: Heating Up!";
+    playFx("bubble");
+    // narrate the updated text, then go to ocean pollution
+    setTimeout(function(){
+      if(!soundOn||!window.speechSynthesis) return setTimeout(function(){ oceanStep=0; gotoScreen("s-ocean-poll"); },1200);
+      var utt=new SpeechSynthesisUtterance(document.getElementById("ocean-txt").textContent.replace(/["""]/g,""));
+      utt.rate=0.92; utt.pitch=1.1; utt.volume=0.9;
+      var voices=window.speechSynthesis.getVoices();
+      var pref=voices.find(function(v){return /samantha|karen|moira|victoria/i.test(v.name);})||voices.find(function(v){return /en/i.test(v.lang);});
+      if(pref) utt.voice=pref;
+      utt.onend=function(){ oceanStep=0; setTimeout(function(){ gotoScreen("s-ocean-poll"); },500); };
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utt);
+    },400);
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  MOUNTAIN ANIMATION
+// ══════════════════════════════════════════════════
+function runMountainAnim(){
+  var wrap=document.getElementById("mt-char-wrap");
+  var charSvg=document.getElementById("char-mt");
+  var badge=document.getElementById("mt-phase-badge");
+  var txt=document.getElementById("mt-txt");
+  var factEl=document.getElementById("mt-fact");
+  var btn=document.getElementById("btn-mt-next"); // removed, auto-advances
+  var cloudEl=document.getElementById("cloud-mt");
+  var riverWrap=document.getElementById("river-drop-wrap");
+  var riverChar=document.getElementById("char-river-drop");
+  if(riverWrap) riverWrap.style.display="none";
+  ["snow-cap","snow-upper","snow-mid-l","snow-mid-r","snow-lower"].forEach(function(id){
+    var el=document.getElementById(id); if(el){el.style.opacity="0";el.style.transition="";}
+  });
+  var meltEl=document.getElementById("melt-stream");
+  var riverPathEl=document.getElementById("river-path");
+  if(meltEl){meltEl.style.opacity="0";meltEl.style.transition="";}
+  if(riverPathEl){riverPathEl.style.opacity="0";riverPathEl.style.transition="";}
+
+  drawChar(charSvg,"snow",st.color,st.acc);
+  if(wrap){wrap.style.top="52px";wrap.style.left="46%";wrap.style.transition="none";}
+  if(cloudEl){cloudEl.style.left="8%";cloudEl.style.transition="none";}
+  if(badge) badge.innerHTML="❄️ Solid Phase — Freezing!";
+
+  var phase1txt='"I floated up with our cloud over the mountain peak — it got so cold I FROZE into a snowflake! I fell down onto the mountain, joining the snowpack."';
+  if(txt) txt.textContent=phase1txt;
+
+  // TTS for phase 1
+  speakText(phase1txt.replace(/["""]/g,""),1.0);
+
+  setTimeout(function(){ if(cloudEl){cloudEl.style.transition="left 1.6s ease";cloudEl.style.left="44%";} playFx("whoosh"); },400);
+  setTimeout(function(){ if(wrap){wrap.style.transition="top 1.2s ease,left .8s ease";wrap.style.top="66px";wrap.style.left="44%";} playFx("rainTick"); },1000);
+
+  var snowIds=["snow-cap","snow-upper","snow-mid-l","snow-mid-r","snow-lower"];
+  snowIds.forEach(function(id,i){ setTimeout(function(){ var el=document.getElementById(id); if(el){el.style.transition="opacity .8s ease";el.style.opacity="0.88";} },2400+i*360); });
+
+  setTimeout(function(){
+    var p2txt='"All winter long, snow piled up deeper and deeper on the mountain. The snowpack stores millions of gallons of water. Then spring arrives..."';
+    if(txt) txt.textContent=p2txt;
+    if(badge) badge.innerHTML="❄️ Solid Phase — Snowpack!";
+    speakText(p2txt.replace(/["""]/g,""),1.0);
+  },4600);
+
+  setTimeout(function(){
+    drawChar(charSvg,"liquid",st.color,st.acc);
+    if(badge) badge.innerHTML="💧 Melting — Solid → Liquid!";
+    var p3txt='"Spring sunshine warms the mountain! I start melting — turning back from solid ice into liquid water. I trickle down the slopes into a river far below!"';
+    if(txt) txt.textContent=p3txt;
+    speakText(p3txt.replace(/["""]/g,""),1.0);
+    ["snow-lower","snow-mid-l","snow-mid-r"].forEach(function(id,i){
+      setTimeout(function(){ var el=document.getElementById(id); if(el){el.style.transition="opacity 1.8s ease";el.style.opacity="0.12";} },i*400);
+    });
+    if(wrap){wrap.style.transition="top 2.5s ease,left 1.5s ease";wrap.style.top="140px";wrap.style.left="28%";}
+    playFx("bubble");
+  },6000);
+
+  setTimeout(function(){ if(meltEl){meltEl.style.transition="opacity 1.5s ease";meltEl.style.opacity="0.75";} if(riverPathEl){riverPathEl.style.transition="opacity 1.5s ease";riverPathEl.style.opacity="0.85";} },7500);
+
+  setTimeout(function(){
+    if(wrap) wrap.style.display="none";
+    if(riverWrap) riverWrap.style.display="block";
+    drawChar(riverChar,"liquid",st.color,st.acc);
+    var p4txt='"I\'m in the river now, flowing downstream! The melted mountain snow gives the river its water. I\'m liquid again — ready for the next part of my adventure!"';
+    if(txt) txt.textContent=p4txt;
+    if(badge) badge.innerHTML="💧 Liquid Phase — River!";
+    // update mountain fact display
+    if(factEl&&factEl.dataset.factSet!=="1"){ factEl.innerHTML="🔬 <strong>Science fact:</strong> "+pickFact("mountain"); factEl.dataset.factSet="1"; }
+    var factTxt=factEl?stripHTML(factEl.innerHTML.replace(/🔬/g,"").replace("Science fact:","")):"";
+    speakText(p4txt.replace(/["""]/g,"")+" "+factTxt, 1.0, function(){ setTimeout(function(){ gotoScreen("s-pollution"); },700); });
+    mtAnimDone=true;
+    playFx("splash");
+  },9000);
+}
+
+function speakText(text, rate, onDone){
+  if(!soundOn||!window.speechSynthesis) return;
+  var utt=new SpeechSynthesisUtterance(text);
+  utt.rate=rate||0.92; utt.pitch=1.1; utt.volume=0.9;
+  var voices=window.speechSynthesis.getVoices();
+  var pref=voices.find(function(v){return /samantha|karen|moira|victoria/i.test(v.name);})||voices.find(function(v){return /en/i.test(v.lang);});
+  if(pref) utt.voice=pref;
+  if(onDone) utt.onend=onDone;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utt);
+}
+
+function stripHTML(html){ return html.replace(/<[^>]*>/g,""); }
+
+// ══════════════════════════════════════════════════
+//  TRASH GAMES
+// ══════════════════════════════════════════════════
+var riverTrashEmojis=["🥤","🛍️","🍾","📦","🧴","🪣","🗑️","🧃"];
+var riverTrashPos=[{top:52,left:5},{top:60,left:20},{top:55,left:38},{top:68,left:54},{top:58,left:70},{top:72,left:82},{top:63,left:12},{top:57,left:88}];
+var oceanTrashEmojis=["🥤","🛍️","🍾","📦","🚗","🪣","🔋","🧴"];
+var oceanTrashPos=[{top:36,left:4},{top:39,left:16},{top:35,left:30},{top:41,left:44},{top:37,left:57},{top:40,left:68},{top:35,left:78},{top:42,left:88}];
+var thoughtBubbleIds=["tb1","tb2","tb3","tb4","tb5","tb6"];
+var happyEmojis=["🥳","🐠","🎉","🎊","😄","🌊"];
+
+function makeTrashItem(emoji,topPct,leftPct,onRemove){
+  var d=document.createElement("div");
+  d.className="trash-item"; d.textContent=emoji;
+  d.style.top=topPct+"%"; d.style.left=leftPct+"%";
+  d.style.animation="bobWave "+(1.8+Math.random()*.8)+"s ease-in-out infinite";
+  d.style.animationDelay=(Math.random()*.5)+"s";
+  d.addEventListener("click",function(){
+    if(d.classList.contains("gone")) return;
+    d.classList.add("gone"); d.style.animation="pop .25s forwards";
+    playFx("pop");
+    setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); },280);
+    onRemove();
+  });
+  return d;
+}
+
+function setupOceanTrash(){
+  st.oceanDone=0;
+  document.getElementById("ocean-trash-count").textContent="0";
+  document.getElementById("ocean-trash-msg").textContent="";
+  document.getElementById("btn-ocean-poll-next").style.display="none";
+  thoughtBubbleIds.forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent="😢"; });
+  var zone=document.getElementById("ocean-trash-zone");
+  zone.innerHTML=""; zone.style.pointerEvents="all";
+  // Narrate villain text
+  setTimeout(function(){ speakText("Polluto says: HEE HEE! I have trashed the OCEAN! Look at those sad turtles and fish! The sea is ruined FOREVER! Mwahahaha!"); },600);
+  oceanTrashEmojis.forEach(function(e,i){
+    zone.appendChild(makeTrashItem(e,oceanTrashPos[i].top,oceanTrashPos[i].left,function(){
+      st.oceanDone++;
+      document.getElementById("ocean-trash-count").textContent=st.oceanDone;
+      var cIdx=Math.min(st.oceanDone-1,thoughtBubbleIds.length-1);
+      if(cIdx>=0){ var tbEl=document.getElementById(thoughtBubbleIds[cIdx]); if(tbEl) tbEl.textContent="😊"; }
+      if(st.oceanDone>=8){
+        document.getElementById("ocean-trash-msg").textContent="✅ Ocean saved! Polluto defeated!";
+        document.getElementById("btn-ocean-poll-next").style.display="block";
+        thoughtBubbleIds.forEach(function(id,i){ setTimeout(function(){ var el=document.getElementById(id); if(el) el.textContent=happyEmojis[i]; },i*200); });
+        playFx("cheer");
+        speakText("Amazing! You cleaned up the ocean! All the sea creatures are so happy now!");
+      }
+    }));
+  });
+}
+
+function setupRiverTrash(){
+  st.riverDone=0;
+  document.getElementById("river-trash-count").textContent="0";
+  document.getElementById("river-trash-msg").textContent="";
+  document.getElementById("btn-river-next").style.display="none";
+  var zone=document.getElementById("river-trash-zone");
+  zone.innerHTML=""; zone.style.pointerEvents="all";
+  setTimeout(function(){ speakText("Polluto says: HA HA! I filled this river with trash! This water will NEVER be clean! Give up little drop!"); },600);
+  riverTrashEmojis.forEach(function(e,i){
+    zone.appendChild(makeTrashItem(e,riverTrashPos[i].top,riverTrashPos[i].left,function(){
+      st.riverDone++;
+      document.getElementById("river-trash-count").textContent=st.riverDone;
+      if(st.riverDone>=8){
+        document.getElementById("river-trash-msg").textContent="✅ River clean! Polluto defeated!";
+        document.getElementById("btn-river-next").style.display="block";
+        playFx("cheer");
+        speakText("Great work! The river is clean! You defeated Polluto!");
+      }
+    }));
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  TRIVIA
+// ══════════════════════════════════════════════════
+function startTrivia(){
+  pickTrivia(); st.score=0; st.qIdx=0; st.answered=false;
+  gotoScreen("s-trivia"); showQ();
+}
+
+function showQ(){
+  var q=triviaRound[st.qIdx];
+  st.answered=false;
+  document.getElementById("q-num").textContent=st.qIdx+1;
+  document.getElementById("q-num2").textContent=st.qIdx+1;
+  document.getElementById("q-text").textContent=q.q;
+  document.getElementById("q-score").textContent=st.score;
+  var fb=document.getElementById("q-feedback"); fb.style.display="none"; fb.className="q-feedback";
+  var prog=document.getElementById("q-prog");
+  prog.innerHTML=triviaRound.map(function(_,i){ var bg=i<st.qIdx?"#43a047":i===st.qIdx?"#2196f3":"#ddd"; return '<div style="width:11px;height:11px;border-radius:50%;background:'+bg+'"></div>'; }).join("");
+  var opts=document.getElementById("q-opts"); opts.innerHTML="";
+  // read question aloud
+  speakText(q.q);
+  q.opts.forEach(function(o,i){
+    var btn=document.createElement("button"); btn.className="q-option"; btn.textContent=o;
+    btn.onclick=function(){
+      if(st.answered) return;
+      st.answered=true;
+      var fb2=document.getElementById("q-feedback");
+      if(i===q.ans){
+        st.score++; btn.classList.add("correct");
+        fb2.className="q-feedback good"; fb2.textContent="✅ Correct! "+q.exp;
+        playFx("correct"); speakText("Correct! "+q.exp);
+      } else {
+        btn.classList.add("wrong");
+        opts.querySelectorAll(".q-option")[q.ans].classList.add("correct");
+        fb2.className="q-feedback bad"; fb2.textContent="❌ Not quite! "+q.exp;
+        playFx("wrong"); speakText("Not quite. "+q.exp);
+      }
+      fb2.style.display="block";
+      document.getElementById("q-score").textContent=st.score;
+      setTimeout(function(){ st.qIdx++; if(st.qIdx<triviaRound.length) showQ(); else showWin(); },3000);
+    };
+    opts.appendChild(btn);
+  });
+}
+
+function showWin(){
+  gotoScreen("s-win");
+  document.getElementById("win-name").textContent=st.name+" completed the adventure!";
+  var pct=st.score/triviaRound.length;
+  var stars=pct>=.84?3:pct>=.5?2:1;
+  var starEl=document.getElementById("win-stars"); starEl.innerHTML="";
+  for(var i=0;i<3;i++){
+    var s=document.createElement("span"); s.className="win-star"; s.style.animationDelay=(i*.18)+"s";
+    s.textContent=i<stars?"⭐":"☆"; starEl.appendChild(s);
+  }
+  var msgs=["Keep exploring — you're just getting started!","Great work, water scientist!","INCREDIBLE! You are a Water Cycle Master!"];
+  var msg="Score: "+st.score+" out of "+triviaRound.length+" — "+msgs[stars-1];
+  document.getElementById("win-msg").textContent=msg;
+  playFx("cheer");
+  speakText(st.name+" completed the Water Drop Adventure! "+msg);
+}
+
+function restart(){
+  st={name:"Droppy",acc:"none",color:"#4fc3f7",riverDone:0,oceanDone:0,score:0,qIdx:0,answered:false};
+  oceanStep=0; mtAnimDone=false;
+  cancelTTS();
+  document.getElementById("inp-name").value="";
+  document.querySelectorAll(".acc-btn").forEach(function(b){b.classList.remove("sel")});
+  document.querySelector('[data-v="none"][data-t="acc"]').classList.add("sel");
+  document.querySelectorAll(".color-swatch").forEach(function(b){b.classList.remove("sel")});
+  document.querySelector('[data-v="#4fc3f7"]').classList.add("sel");
+  document.querySelectorAll(".fact-box").forEach(function(el){ el.dataset.factSet=""; });
+  syncAll(); gotoScreen("s-welcome");
+}
+
+// ══════════════════════════════════════════════════
+//  AUDIO — thunderstorm ambient + Web Audio SFX
+// ══════════════════════════════════════════════════
+function initAudio(){
+  if(audioCtx) return;
+  try{
+    audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    startThunderstorm();
+  } catch(e){ soundOn=false; }
+}
+
+// ---------- RAIN AMBIENT (white-noise lowpass) ----------
+function startThunderstorm(){
+  if(!audioCtx) return;
+  try{
+    // Master rain gain
+    rainGain=audioCtx.createGain(); rainGain.gain.value=0.18; rainGain.connect(audioCtx.destination);
+
+    // White-noise buffer for rain
+    var bufLen=audioCtx.sampleRate*2;
+    var rainBuf=audioCtx.createBuffer(1,bufLen,audioCtx.sampleRate);
+    var data=rainBuf.getChannelData(0);
+    for(var i=0;i<bufLen;i++) data[i]=(Math.random()*2-1);
+
+    var rainSrc=audioCtx.createBufferSource();
+    rainSrc.buffer=rainBuf; rainSrc.loop=true;
+    // Low-pass filter to make it sound like rain (cut highs)
+    var lp=audioCtx.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=1200; lp.Q.value=0.8;
+    // Second filter — band emphasise the splatter freq
+    var bp=audioCtx.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=600; bp.Q.value=0.5;
+    var rainMix=audioCtx.createGain(); rainMix.gain.value=0.6;
+    rainSrc.connect(lp); lp.connect(rainMix);
+    rainSrc.connect(bp); bp.connect(rainMix);
+    rainMix.connect(rainGain);
+    rainSrc.start();
+    rainNode=rainSrc;
+
+    // Occasional rain ticks (drops hitting surface)
+    scheduleRainTicks();
+    // Occasional thunder rumbles
+    scheduleThunder();
+  } catch(e){}
+}
+
+function scheduleRainTicks(){
+  if(!audioCtx||!rainGain) return;
+  (function tick(){
+    if(!soundOn) return setTimeout(tick,200);
+    try{
+      var o=audioCtx.createOscillator(), g=audioCtx.createGain();
+      o.type="sine"; o.connect(g); g.connect(rainGain);
+      var t=audioCtx.currentTime;
+      var freq=1400+Math.random()*1800;
+      o.frequency.setValueAtTime(freq,t);
+      o.frequency.exponentialRampToValueAtTime(freq*.3,t+.06);
+      g.gain.setValueAtTime(.15+Math.random()*.15,t);
+      g.gain.exponentialRampToValueAtTime(.001,t+.07);
+      o.start(t); o.stop(t+.08);
+    } catch(e){}
+    setTimeout(tick, 40+Math.random()*120);
+  })();
+}
+
+function scheduleThunder(){
+  if(!audioCtx||!rainGain) return;
+  (function thunder(){
+    var delay=8000+Math.random()*14000; // 8-22 seconds between rumbles
+    setTimeout(function(){
+      if(!soundOn||!audioCtx) return thunder();
+      try{
+        // Thunder = filtered noise burst with slow attack and long decay
+        var bufLen=Math.floor(audioCtx.sampleRate*2.5);
+        var tbuf=audioCtx.createBuffer(1,bufLen,audioCtx.sampleRate);
+        var td=tbuf.getChannelData(0);
+        for(var i=0;i<bufLen;i++) td[i]=(Math.random()*2-1);
+        var tsrc=audioCtx.createBufferSource(); tsrc.buffer=tbuf;
+        var tlp=audioCtx.createBiquadFilter(); tlp.type="lowpass"; tlp.frequency.value=180+Math.random()*80;
+        var tg=audioCtx.createGain(); tg.connect(audioCtx.destination);
+        tsrc.connect(tlp); tlp.connect(tg);
+        var t=audioCtx.currentTime;
+        var vol=0.35+Math.random()*.25;
+        tg.gain.setValueAtTime(0,t);
+        tg.gain.linearRampToValueAtTime(vol,t+.12);
+        tg.gain.linearRampToValueAtTime(vol*.7,t+.35);
+        tg.gain.exponentialRampToValueAtTime(.001,t+2.2);
+        tsrc.start(t); tsrc.stop(t+2.5);
+        // brief flash: darken then restore BG
+        document.body.style.transition="background .05s";
+        document.body.style.background="#c8d8e8";
+        setTimeout(function(){ document.body.style.background="#e8f4fd"; },80);
+      } catch(e){}
+      thunder();
+    },delay);
+  })();
+}
+
+function updateRainIntensity(id){
+  if(!rainGain) return;
+  // Heavy rain during mountain/storm screens, softer elsewhere
+  var heavy=(id==="s-mountain"||id==="s-cloud");
+  var target=heavy?0.28:0.18;
+  rainGain.gain.setTargetAtTime(target,audioCtx.currentTime,.8);
+}
+
+function playFx(type){
+  if(!soundOn||!audioCtx) return;
+  try{
+    var o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    var t=audioCtx.currentTime;
+    if(type==="click"){
+      o.frequency.setValueAtTime(880,t); o.frequency.exponentialRampToValueAtTime(440,t+.08);
+      g.gain.setValueAtTime(.15,t); g.gain.exponentialRampToValueAtTime(.001,t+.1);
+      o.start(t); o.stop(t+.1);
+    } else if(type==="splash"){
+      o.type="sine"; [440,392,330,294].forEach(function(f,i){ o.frequency.setValueAtTime(f,t+i*.06); });
+      g.gain.setValueAtTime(.2,t); g.gain.exponentialRampToValueAtTime(.001,t+.35);
+      o.start(t); o.stop(t+.35);
+    } else if(type==="pop"){
+      o.type="sine"; o.frequency.setValueAtTime(600,t); o.frequency.exponentialRampToValueAtTime(200,t+.12);
+      g.gain.setValueAtTime(.25,t); g.gain.exponentialRampToValueAtTime(.001,t+.14);
+      o.start(t); o.stop(t+.14);
+    } else if(type==="bubble"){
+      o.type="sine"; o.frequency.setValueAtTime(300,t); o.frequency.exponentialRampToValueAtTime(600,t+.1);
+      o.frequency.exponentialRampToValueAtTime(200,t+.18);
+      g.gain.setValueAtTime(.18,t); g.gain.exponentialRampToValueAtTime(.001,t+.2);
+      o.start(t); o.stop(t+.2);
+    } else if(type==="whoosh"){
+      o.type="sawtooth"; o.frequency.setValueAtTime(200,t); o.frequency.exponentialRampToValueAtTime(80,t+.3);
+      g.gain.setValueAtTime(.08,t); g.gain.linearRampToValueAtTime(0,t+.3);
+      o.start(t); o.stop(t+.3);
+    } else if(type==="rainTick"){
+      for(var i=0;i<6;i++){
+        (function(dl){ setTimeout(function(){
+          if(!soundOn||!audioCtx) return;
+          var o2=audioCtx.createOscillator(),g2=audioCtx.createGain();
+          o2.connect(g2); g2.connect(audioCtx.destination);
+          var t2=audioCtx.currentTime;
+          o2.type="sine"; o2.frequency.setValueAtTime(900+Math.random()*600,t2);
+          o2.frequency.exponentialRampToValueAtTime(150,t2+.08);
+          g2.gain.setValueAtTime(.1,t2); g2.gain.exponentialRampToValueAtTime(.001,t2+.1);
+          o2.start(t2); o2.stop(t2+.1);
+        },dl); })(i*85);
+      }
+      return;
+    } else if(type==="correct"){
+      o.type="triangle"; [523,659,784,1047].forEach(function(f,i){ o.frequency.setValueAtTime(f,t+i*.1); });
+      g.gain.setValueAtTime(.2,t); g.gain.exponentialRampToValueAtTime(.001,t+.45);
+      o.start(t); o.stop(t+.45);
+    } else if(type==="wrong"){
+      o.type="sawtooth"; o.frequency.setValueAtTime(200,t); o.frequency.exponentialRampToValueAtTime(120,t+.25);
+      g.gain.setValueAtTime(.15,t); g.gain.exponentialRampToValueAtTime(.001,t+.28);
+      o.start(t); o.stop(t+.28);
+    } else if(type==="cheer"){
+      o.type="triangle"; [523,659,784,659,784,1047].forEach(function(f,i){ o.frequency.setValueAtTime(f,t+i*.07); });
+      g.gain.setValueAtTime(.2,t); g.gain.exponentialRampToValueAtTime(.001,t+.55);
+      o.start(t); o.stop(t+.55);
+    }
+  } catch(e){}
+}
+
+function toggleSound(){
+  soundOn=!soundOn;
+  document.getElementById("sound-btn").textContent=soundOn?"🔊":"🔇";
+  if(rainGain) rainGain.gain.setTargetAtTime(soundOn?0.18:0, audioCtx?audioCtx.currentTime:0, .3);
+  if(!audioCtx&&soundOn) initAudio();
+  if(!soundOn) cancelTTS();
+}
+
+// ══════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════
+syncAll();
+</script>
+</body>
+</html>
